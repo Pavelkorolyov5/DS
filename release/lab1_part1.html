@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор</title>
+<style>
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.calculator {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  padding: 25px 35px;
+  width: 340px;
+  text-align: center;
+}
+input, select, button {
+  width: 100%;
+  font-size: 1.2rem;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+button:hover { background-color: #1d4ed8; }
+.info {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #555;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+.result {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #111827;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<div class="calculator">
+  <h2>Калькулятор</h2>
+
+  <input id="num1" type="text" placeholder="Введите первое число">
+  <select id="operation">
+    <option value="add">+</option>
+    <option value="sub">-</option>
+  </select>
+  <input id="num2" type="text" placeholder="Введите второе число">
+  <button id="calcBtn">Вычислить</button>
+
+  <div class="result" id="result"></div>
+
+  <div class="info">
+    <p>Королёв Павел Андреевич</p>
+    <p>Курс: 4</p>
+    <p>Группа: 4</p>
+    <p>2025</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/decimal.js@10.4.3/decimal.min.js"></script>
+<script>
+const MIN = new Decimal("-1000000000000.000000");
+const MAX = new Decimal("1000000000000.000000");
+
+function parseInput(value) {
+  value = value.trim().replace(',', '.');
+  if (!/^-?\d+(\.\d+)?$/.test(value)) return null;
+  try { return new Decimal(value); } catch { return null; }
+}
+
+document.getElementById("calcBtn").addEventListener("click", () => {
+  const num1 = parseInput(document.getElementById("num1").value);
+  const num2 = parseInput(document.getElementById("num2").value);
+  const op = document.getElementById("operation").value;
+  const resultEl = document.getElementById("result");
+
+  if (!num1 || !num2) {
+    resultEl.textContent = "Ошибка";
+    return;
+  }
+
+  let result = (op === "add") ? num1.plus(num2) : num1.minus(num2);
+
+  if (result.lessThan(MIN) || result.greaterThan(MAX)) {
+    resultEl.textContent = "Выход из диапазона";
+    return;
+  }
+
+  resultEl.textContent = "Результат: " + result.toFixed(6).replace('.', ',');
+});
+
+document.querySelectorAll('input').forEach(input => {
+  input.addEventListener('keydown', async e => {
+    const key = e.key.toLowerCase();
+    if (e.ctrlKey && (key === 'c' || key === 'с')) {
+      try { await navigator.clipboard.writeText(input.value); } catch {}
+      e.preventDefault();
+    } else if (e.ctrlKey && (key === 'v' || key === 'м')) {
+      try {
+        const text = await navigator.clipboard.readText();
+        const cleaned = text.replace(/[^0-9,.\-]/g, '');
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const current = input.value;
+        input.value = current.slice(0, start) + cleaned + current.slice(end);
+        input.setSelectionRange(start + cleaned.length, start + cleaned.length);
+      } catch {}
+      e.preventDefault();
+    }
+  });
+});
+</script>
+</body>
+</html>
